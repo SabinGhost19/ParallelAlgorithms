@@ -1,32 +1,27 @@
+#define _XOPEN_SOURCE 700
 #include <math.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-int printLevel;
+#include <unistd.h>
 int N;
 int P;
 
-pthread_barrier_t barrier_1;
-pthread_barrier_t barrier_2;
+pthread_mutex_t mutex;
+
+pthread_mutexattr_t attr;
+int printLevel = 0;
 
 void *threadFunction(void *var) {
   // TODO preserve the correct order by using barriers
-
   int thread_id = *(int *)var;
   if (thread_id == 0) {
-    pthread_barrier_wait(&barrier_2);
-    printf("I should be displayed last\n");
+    pthread_mutex_lock(&mutex);
+    pthread_mutex_lock(&mutex);
+    printf("There should be two messages displayed, I am one of them\n");
 
-  } else if (thread_id == 1) {
-    pthread_barrier_wait(&barrier_1);
-    printf("I should be displayed in the middle\n");
-    pthread_barrier_wait(&barrier_2);
-
-  } else if (thread_id == 2) {
-    printf("I should be displayed first\n");
-    pthread_barrier_wait(&barrier_1);
-    pthread_barrier_wait(&barrier_2);
+  } else {
+    printf("There should be two messages displayed, I am one of them\n");
   }
 }
 
@@ -48,15 +43,15 @@ void print() {
 }
 
 int main(int argc, char *argv[]) {
-
-  pthread_barrier_init(&barrier_2, NULL, 3);
-  pthread_barrier_init(&barrier_1, NULL, 2);
-
   getArgs(argc, argv);
   init();
 
-  P = 3; // ATTENTION, WE OVERWRITE THE NUMBER OF THREADS. WE ONLY NEED 3
+  P = 2; // ATTENTION, WE OVERWRITE THE NUMBER OF THREADS. WE ONLY NEED 2
   int i;
+
+  pthread_mutexattr_init(&attr);
+  pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+  pthread_mutex_init(&mutex, &attr);
 
   pthread_t tid[P];
   int thread_id[P];
@@ -72,6 +67,9 @@ int main(int argc, char *argv[]) {
   }
   // DO NOT EDIT
   print();
+
+  pthread_mutex_destroy(&mutex);
+  pthread_mutexattr_destroy(&attr);
 
   return 0;
 }

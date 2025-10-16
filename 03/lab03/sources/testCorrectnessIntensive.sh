@@ -12,7 +12,7 @@ else
 fi
 
 rm out*
-./$seq_program $N $printLevel 1 > out
+time ./$seq_program $N $printLevel 1 > out
 # we add 1 here just so we can use a par_program instead of a missing sequential one
 echo The result of your parallel program is
 echo ======================================
@@ -22,7 +22,7 @@ echo Running intensive correctness test with $P threads
 for i in `seq 1 $NumTests`; do
 	echo Test $i/$NumTests
 	for P in $runs; do
-		./$par_program $N $printLevel $P > out.$i.$P 
+		time ./$par_program $N $printLevel $P > out.$i.$P 
 	done
 done
 
