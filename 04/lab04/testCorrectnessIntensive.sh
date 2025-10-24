@@ -14,9 +14,9 @@ fi
 rm out*
 ./$seq_program $N $printLevel 1 > out
 # we add 1 here just so we can use a par_program instead of a missing sequential one
-echo The result of your parallel program is
-echo ======================================
-cat out
+# echo The result of your parallel program is
+# echo ======================================
+#cat out
 echo ======================================
 echo Running intensive correctness test with $P threads
 for i in `seq 1 $NumTests`; do
@@ -25,6 +25,7 @@ for i in `seq 1 $NumTests`; do
 		./$par_program $N $printLevel $P > out.$i.$P 
 	done
 done
+
 
 diff -q --from-file out out.*
 if [ $? -eq 0 ]; then
@@ -39,14 +40,18 @@ echo "Performance tests---time"
 echo "======================================"
 
 #seq
-echo "START: seqvential program: $seq_program"
+echo "START: sequential program: $seq_program"
 total_seq=0
 for i in `seq 1 $NumTests`; do
-    exec_time=$( { time ./$seq_program $N $printLevel 1 > /dev/null 2>&1; } 2>&1 | grep real | awk '{print $2}' | sed 's/0m//;s/s//' )
+    echo "  Test $i/$NumTests"
+    start=$(date +%s.%N)
+    ./$seq_program $N $printLevel 1 > /dev/null
+    end=$(date +%s.%N)
+    exec_time=$(echo "$end - $start" | bc)
     total_seq=$(echo "$total_seq + $exec_time" | bc)
 done
 avg_seq=$(echo "scale=6; $total_seq / $NumTests" | bc)
-echo "Average time for sequential: $avg_seq seconds"
+echo "Average time for sequential: ${avg_seq}s"
 echo ""
 
 #par
@@ -55,11 +60,15 @@ for P in $runs; do
     echo "Running parallel program with $P threads..."
     total_par=0
     for i in `seq 1 $NumTests`; do
-        exec_time=$( { time ./$par_program $N $printLevel $P > /dev/null 2>&1; } 2>&1 | grep real | awk '{print $2}' | sed 's/0m//;s/s//' )
+        echo "  Test $i/$NumTests"
+        start=$(date +%s.%N)
+        ./$par_program $N $printLevel $P > /dev/null
+        end=$(date +%s.%N)
+        exec_time=$(echo "$end - $start" | bc)
         total_par=$(echo "$total_par + $exec_time" | bc)
     done
     avg_par=$(echo "scale=6; $total_par / $NumTests" | bc)
     speedup=$(echo "scale=3; $avg_seq / $avg_par" | bc)
-    echo "Average time for $P threads: $avg_par seconds (speedup: ${speedup}x)"
+    echo "Average time for $P threads: ${avg_par}s (speedup: ${speedup}x)"
+    echo ""
 done
-
