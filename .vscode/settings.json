@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "pthread.h": "c",
+        "unistd.h": "c",
+        "stdio.h": "c",
+        "math.h": "c",
+        "type_traits": "c",
+        "sumvector-scaled-multiple-sum": "c",
+        "semaphore.h": "c",
+        "stdlib.h": "c"
+    }
+}
