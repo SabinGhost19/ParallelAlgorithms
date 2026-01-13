@@ -9,6 +9,7 @@
         private int _WRITE_WRITE_CHECK = 0;
 
         private object _lockObject = new object();
+        private ReaderWriterLockSlim _rwLock = new ReaderWriterLockSlim();
 
         public void Add(MapArea newMapArea)
         {
@@ -16,12 +17,13 @@
             {
                 /// -------------------------------------
                 /// Write your solution here
-                
+                _rwLock.EnterWriteLock();
+
                 ///////// DO NOT MODIFY BELLOW //////////
                 _WRITE_WRITE_CHECK += 2;
                 _READ_WRITE_CHECK += 2;
                 // Insert or update
-                //_mapAreas[newMapArea.Alias] = newMapArea;
+                _mapAreas[newMapArea.Alias] = newMapArea;
                 ///////// DO NOT MODIFY ABOVE //////////
 
                 /// -------------------------------------
@@ -30,6 +32,7 @@
             {
                 /// -------------------------------------
                 /// Cleanup
+                _rwLock.ExitWriteLock();
                 /// -------------------------------------
             }
         }
@@ -42,14 +45,15 @@
             {
                 /// -------------------------------------
                 /// Write your solution here
-                
+                _rwLock.EnterReadLock();
+
                 ///////// DO NOT MODIFY BELLOW //////////
                 _READ_READ_CHECK += 2;
                 lock (_lockObject)
                 {
                     _READ_WRITE_CHECK += 2;
                 }
-                //_mapAreas.TryGetValue(alias, out mapArea);
+                _mapAreas.TryGetValue(alias, out mapArea);
                 ///////// DO NOT MODIFY ABOVE //////////
 
                 /// -------------------------------------
@@ -58,6 +62,7 @@
             {
                 /// -------------------------------------
                 /// Cleanup
+                _rwLock.ExitReadLock();
                 /// -------------------------------------
             }
 

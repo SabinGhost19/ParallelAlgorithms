@@ -21,11 +21,11 @@ namespace ex11
 
             for (int i = 0; i < numSections; i++)
             {
-                int start = i * sectionSize;
-                int end = (i == numSections - 1) ? ARRAY_SIZE : start + sectionSize;
+                int localStart = i * sectionSize;
+                int localEnd = (i == numSections - 1) ? ARRAY_SIZE : localStart + sectionSize;
                 actions[i] = () =>
                 {
-                    for (int j = start; j < end; j++)
+                    for (int j = localStart; j < localEnd; j++)
                     {
                         if (isPrime(v[j]))
                         {

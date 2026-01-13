@@ -109,18 +109,31 @@ void *threadFunction(void *arg)
 {
 	int id = *(int *)arg;
 
+	// Calculam start si end pentru acest thread
+	// Numarul total de perechi este (N-1)/2 pentru fiecare faza
+	int total_pairs = (N + 1) / 2;
+	int pairs_per_thread = total_pairs / P;
+	int remainder = total_pairs % P;
+
+	int my_start = id * pairs_per_thread + (id < remainder ? id : remainder);
+	int my_end = my_start + pairs_per_thread + (id < remainder ? 1 : 0);
+
 	for (int phase = 0; phase < N; phase++) {
 		if (phase % 2 == 0) {
-			for (int j = 0; j < N - 1; j += 2) {
-				if (v[j] > v[j + 1]) {
+			// Faza para: comparam perechile (0,1), (2,3), (4,5), ...
+			for (int p = my_start; p < my_end; p++) {
+				int j = p * 2;  // pozitia elementului din stanga
+				if (j < N - 1 && v[j] > v[j + 1]) {
 					int tmp = v[j];
 					v[j] = v[j + 1];
 					v[j + 1] = tmp;
 				}
 			}
 		} else {
-			for (int j = 1; j < N - 1; j += 2) {
-				if (v[j] > v[j + 1]) {
+			// Faza impara: comparam perechile (1,2), (3,4), (5,6), ...
+			for (int p = my_start; p < my_end; p++) {
+				int j = p * 2 + 1;  // pozitia elementului din stanga (incepand de la 1)
+				if (j < N - 1 && v[j] > v[j + 1]) {
 					int tmp = v[j];
 					v[j] = v[j + 1];
 					v[j + 1] = tmp;
@@ -140,9 +153,9 @@ int main(int argc, char *argv[])
 
 	// make copy to check it against qsort
 	// DO NOT MODIFY
-	// for (i = 0; i < N; i++)
-	// 	vQSort[i] = v[i];
-	// qsort(vQSort, N, sizeof(int), cmp);
+	for (i = 0; i < N; i++)
+		vQSort[i] = v[i];
+	qsort(vQSort, N, sizeof(int), cmp);
 
 	// sort the vector v
 	// PARALLELIZE ME
@@ -171,7 +184,7 @@ int main(int argc, char *argv[])
 	for (i = 0; i < P; i++) {
 		pthread_join(tid[i], NULL);
 	}
-	// print();
+	print();
 
 	return 0;
 }

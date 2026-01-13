@@ -10,6 +10,9 @@ int* v;
 int *vQSort;
 int *vNew;
 
+pthread_barrier_t barrier;
+int current_width;
+
 void merge(int source[], int start, int mid, int end, int destination[]) {
 	// DO NOT MODIFY
 	int iA = start;
@@ -88,6 +91,7 @@ void init()
 		printf("malloc failed!");
 		exit(1);
 	}
+	pthread_barrier_init(&barrier, NULL, P);
 
 	// generate the vector v with random values
 	// DO NOT MODIFY
@@ -118,6 +122,44 @@ void print()
 		printAll();
 }
 
+void *threadFunction(void *arg)
+{
+	int id = *(int *)arg;
+
+	// Calculam start si end normale
+	int start_normal = id * (double)N / P;
+	int end_normal = (id + 1) * (double)N / P;
+
+	for (int width = 1; width < N; width = 2 * width) {
+		// Rotunjim start si end la multiplu de 2*width
+		int round_factor = 2 * width;
+		int start = (start_normal / round_factor) * round_factor;
+		int end = (end_normal / round_factor) * round_factor;
+
+		// Daca end nu acopera ultimul segment atribuit acestui thread, il ajustam
+		if (end < end_normal && id == P - 1) {
+			end = N;
+		}
+
+		for (int i = start; i < end && i < N; i = i + 2 * width) {
+			merge(v, i, i + width, i + 2 * width, vNew);
+		}
+
+		pthread_barrier_wait(&barrier);
+
+		// Doar thread-ul 0 face interschimbarea pointerilor
+		if (id == 0) {
+			int *aux = v;
+			v = vNew;
+			vNew = aux;
+		}
+
+		pthread_barrier_wait(&barrier);
+	}
+
+	return NULL;
+}
+
 int main(int argc, char *argv[])
 {
 	int i, j;
@@ -130,21 +172,10 @@ int main(int argc, char *argv[])
 		vQSort[i] = v[i];
 	qsort(vQSort, N, sizeof(int), cmp);
 	
-	// sort the vector v
-	// PARALLELIZE ME
-	int width, *aux;
-	for (width = 1; width < N; width = 2 * width) {
-		for (i = 0; i < N; i = i + 2 * width) {
-			merge(v, i, i + width, i + 2 * width, vNew);
-		}
-		aux = v;
-		v = vNew;
-		vNew = aux;
-	}
-	/*
+	// sort the vector v - PARALLELIZED
 	pthread_t tid[P];
 	int thread_id[P];
-	for(i = 0;i < P; i++)
+	for(i = 0; i < P; i++)
 		thread_id[i] = i;
 
 	for(i = 0; i < P; i++) {
@@ -154,7 +185,6 @@ int main(int argc, char *argv[])
 	for(i = 0; i < P; i++) {
 		pthread_join(tid[i], NULL);
 	}
-	*/
 
 	print();
 
