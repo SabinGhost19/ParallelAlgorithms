@@ -41,6 +41,13 @@ lab09/books.txt_encrypted.bin
 *.x86_64
 *.hex
 
+# Linux executables (without extension) - common patterns
+*-par
+*-seq
+*Seq
+**/bin/
+**/obj/
+
 # Debug files
 *.dSYM/
 *.su
